@@ -1,0 +1,10 @@
+image: golang
+
+stages:
+    - test
+
+format:
+    stage: test
+    script:
+      - go test -v ./...
+
