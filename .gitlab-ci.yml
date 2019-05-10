@@ -3,8 +3,10 @@ image: golang
 stages:
     - test
 
-format:
+test:
     stage: test
+    tags:
+      - docker
     script:
       - make
 
