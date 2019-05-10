@@ -6,5 +6,5 @@ stages:
 format:
     stage: test
     script:
-      - go test -v ./...
+      - make
 
