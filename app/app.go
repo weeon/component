@@ -10,6 +10,7 @@ import (
 	"github.com/weeon/contract"
 	"github.com/weeon/mod"
 	"go.mongodb.org/mongo-driver/mongo"
+	mgopt "go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type App struct {
@@ -40,12 +41,14 @@ const (
 type Config struct {
 	Database map[string]mod.Database
 	Redis    map[string]mod.Redis
+	Mongo    map[string]string
 }
 
 func NewConfig() *Config {
 	return &Config{
 		Database: make(map[string]mod.Database),
 		Redis:    make(map[string]mod.Redis),
+		Mongo:    make(map[string]string),
 	}
 }
 
@@ -150,6 +153,25 @@ func (a *App) InitRedis() error {
 
 func (a *App) GetRedis(k string) *redis.Client {
 	return a.redis[k]
+}
+
+func (a *App) InitMongo(k string) error {
+	for _, v := range a.mongoKeys {
+		vv, ok := a.conf.Mongo[v]
+		if !ok {
+			return errors.New(fmt.Sprintf("mongo key %s not found", v))
+		}
+		cli, err := mongo.NewClient(mgopt.Client().ApplyURI(vv))
+		if err != nil {
+			return err
+		}
+		a.mongo[v] = cli
+	}
+	return nil
+}
+
+func (a *App) GetMongo(k string) *mongo.Client {
+	return a.mongo[k]
 }
 
 func newConnStr(m mod.Database) string {
