@@ -1,0 +1,164 @@
+package app
+
+import (
+	"errors"
+	"fmt"
+
+	"github.com/BurntSushi/toml"
+	"github.com/go-redis/redis"
+	"github.com/jinzhu/gorm"
+	"github.com/weeon/contract"
+	"github.com/weeon/mod"
+	"go.mongodb.org/mongo-driver/mongo"
+)
+
+type App struct {
+	namespace string
+	config    contract.Config
+	conf      *Config
+
+	confKeys []string
+
+	//
+	dbKeys    []string
+	redisKeys []string
+	mongoKeys []string
+
+	db    map[string]*gorm.DB
+	redis map[string]*redis.Client
+	mongo map[string]*mongo.Client
+
+	grpcConn map[string]string
+}
+
+const (
+	Database = "database"
+	Redis    = "redis"
+	GrpcConn = "grpc_conn"
+)
+
+type Config struct {
+	Database map[string]mod.Database
+	Redis    map[string]mod.Redis
+}
+
+func NewConfig() *Config {
+	return &Config{
+		Database: make(map[string]mod.Database),
+		Redis:    make(map[string]mod.Redis),
+	}
+}
+
+func NewApp(namespace string, c contract.Config) (*App, error) {
+	app := App{
+		namespace: namespace,
+		config:    c,
+		conf:      NewConfig(),
+
+		confKeys: make([]string, 0),
+
+		dbKeys:    make([]string, 0),
+		redisKeys: make([]string, 0),
+		mongoKeys: make([]string, 0),
+
+		db:    map[string]*gorm.DB{},
+		redis: map[string]*redis.Client{},
+		mongo: map[string]*mongo.Client{},
+
+		grpcConn: make(map[string]string),
+	}
+	return &app, nil
+}
+
+func (a *App) AddConfKey(ks ...string) {
+	a.confKeys = append(a.confKeys, ks...)
+}
+
+func (a *App) AddDatabaseKey(ks ...string) {
+	a.dbKeys = append(a.dbKeys, ks...)
+}
+
+func (a *App) AddRedisKey(ks ...string) {
+	a.redisKeys = append(a.redisKeys, ks...)
+}
+
+func (a *App) AddMongoKey(ks ...string) {
+	a.mongoKeys = append(a.mongoKeys, ks...)
+}
+
+func (a *App) genConfKey(k string) string {
+	return fmt.Sprintf("%s/config/%s", a.namespace, k)
+}
+
+func (a *App) InitConf() error {
+	var configKeys = map[string]interface{}{
+		Database: &a.conf.Database,
+		Redis:    &a.conf.Redis,
+	}
+
+	for _, v := range a.confKeys {
+		if vv, ok := configKeys[v]; ok {
+			b, err := a.config.Get(a.genConfKey(v))
+			if err != nil {
+				return err
+			}
+			err = toml.Unmarshal(b, vv)
+			if err != nil {
+				return err
+			}
+			continue
+		}
+		return errors.New(fmt.Sprintf("key %s not found", v))
+	}
+	return nil
+}
+
+func (a *App) InitDatabase() error {
+	for _, v := range a.dbKeys {
+		if vv, ok := a.conf.Database[v]; ok {
+			db, err := NewDatabase(vv)
+			if err != nil {
+				return err
+			}
+			a.db[v] = db
+			continue
+		}
+		return errors.New(fmt.Sprintf("db config %s not found", v))
+	}
+	return nil
+}
+
+func (a *App) GetDB(k string) *gorm.DB {
+	return a.db[k]
+}
+
+func (a *App) InitRedis() error {
+	for _, v := range a.redisKeys {
+		vv, ok := a.conf.Redis[v]
+		if !ok {
+			return errors.New(fmt.Sprintf("redis key %s not found", v))
+		}
+		cli := redis.NewClient(&redis.Options{
+			Addr:     vv.Host,
+			DB:       vv.DB,
+			Password: vv.Password,
+		})
+		a.redis[v] = cli
+	}
+	return nil
+}
+
+func (a *App) GetRedis(k string) *redis.Client {
+	return a.redis[k]
+}
+
+func newConnStr(m mod.Database) string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		m.User, m.Password, m.Host, m.Port, m.Database)
+}
+
+func NewDatabase(m mod.Database) (*gorm.DB, error) {
+	var err error
+	engine, err := gorm.Open(m.Driver, newConnStr(m))
+	return engine, err
+}
