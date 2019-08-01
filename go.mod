@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/go-redis/redis v6.15.2+incompatible
+	github.com/influxdata/influxdb-client-go v0.0.1
 	github.com/jinzhu/gorm v1.9.10
 	github.com/mongodb/mongo-go-driver v1.0.4 // indirect
 	github.com/opentracing/opentracing-go v1.1.0

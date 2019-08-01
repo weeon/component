@@ -3,9 +3,11 @@ package app
 import (
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis"
+	"github.com/influxdata/influxdb-client-go"
 	"github.com/jinzhu/gorm"
 	"github.com/weeon/contract"
 	"github.com/weeon/mod"
@@ -21,13 +23,15 @@ type App struct {
 	confKeys []string
 
 	//
-	dbKeys    []string
-	redisKeys []string
-	mongoKeys []string
+	dbKeys       []string
+	redisKeys    []string
+	mongoKeys    []string
+	influxdbKeys []string
 
-	db    map[string]*gorm.DB
-	redis map[string]*redis.Client
-	mongo map[string]*mongo.Client
+	db       map[string]*gorm.DB
+	redis    map[string]*redis.Client
+	mongo    map[string]*mongo.Client
+	influxDB map[string]*influxdb.Client
 
 	grpcConn map[string]string
 }
@@ -35,6 +39,8 @@ type App struct {
 const (
 	Database = "database"
 	Redis    = "redis"
+	Mongo    = "mongo"
+	InfluxDB = "influxdb"
 	GrpcConn = "grpc_conn"
 )
 
@@ -42,6 +48,7 @@ type Config struct {
 	Database map[string]mod.Database
 	Redis    map[string]mod.Redis
 	Mongo    map[string]string
+	InfluxDB map[string]mod.InfluxDB
 }
 
 func NewConfig() *Config {
@@ -49,6 +56,7 @@ func NewConfig() *Config {
 		Database: make(map[string]mod.Database),
 		Redis:    make(map[string]mod.Redis),
 		Mongo:    make(map[string]string),
+		InfluxDB: make(map[string]mod.InfluxDB),
 	}
 }
 
@@ -60,13 +68,15 @@ func NewApp(namespace string, c contract.Config) (*App, error) {
 
 		confKeys: make([]string, 0),
 
-		dbKeys:    make([]string, 0),
-		redisKeys: make([]string, 0),
-		mongoKeys: make([]string, 0),
+		dbKeys:       make([]string, 0),
+		redisKeys:    make([]string, 0),
+		mongoKeys:    make([]string, 0),
+		influxdbKeys: make([]string, 0),
 
-		db:    map[string]*gorm.DB{},
-		redis: map[string]*redis.Client{},
-		mongo: map[string]*mongo.Client{},
+		db:       map[string]*gorm.DB{},
+		redis:    map[string]*redis.Client{},
+		mongo:    map[string]*mongo.Client{},
+		influxDB: map[string]*influxdb.Client{},
 
 		grpcConn: make(map[string]string),
 	}
@@ -87,6 +97,10 @@ func (a *App) AddRedisKey(ks ...string) {
 
 func (a *App) AddMongoKey(ks ...string) {
 	a.mongoKeys = append(a.mongoKeys, ks...)
+}
+
+func (a *App) AddInfluxdbKey(ks ...string) {
+	a.influxdbKeys = append(a.influxdbKeys, ks...)
 }
 
 func (a *App) genConfKey(k string) string {
@@ -147,6 +161,22 @@ func (a *App) InitRedis() error {
 			Password: vv.Password,
 		})
 		a.redis[v] = cli
+	}
+	return nil
+}
+
+func (a *App) InitInfluxDB() error {
+	for _, v := range a.influxdbKeys {
+		vv, ok := a.conf.InfluxDB[v]
+		if !ok {
+			return errors.New(fmt.Sprintf("influxdb key %s not found", v))
+		}
+		cli, err := influxdb.New(http.DefaultClient, influxdb.WithAddress(vv.Addr),
+			influxdb.WithUserAndPass(vv.Username, vv.Password))
+		if err != nil {
+			return err
+		}
+		a.influxDB[v] = cli
 	}
 	return nil
 }
