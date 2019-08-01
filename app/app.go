@@ -47,7 +47,7 @@ const (
 type Config struct {
 	Database map[string]mod.Database
 	Redis    map[string]mod.Redis
-	Mongo    map[string]string
+	Mongo    map[string]mod.Mongo
 	InfluxDB map[string]mod.InfluxDB
 }
 
@@ -55,7 +55,7 @@ func NewConfig() *Config {
 	return &Config{
 		Database: make(map[string]mod.Database),
 		Redis:    make(map[string]mod.Redis),
-		Mongo:    make(map[string]string),
+		Mongo:    make(map[string]mod.Mongo),
 		InfluxDB: make(map[string]mod.InfluxDB),
 	}
 }
@@ -191,7 +191,7 @@ func (a *App) InitMongo(k string) error {
 		if !ok {
 			return errors.New(fmt.Sprintf("mongo key %s not found", v))
 		}
-		cli, err := mongo.NewClient(mgopt.Client().ApplyURI(vv))
+		cli, err := mongo.NewClient(mgopt.Client().ApplyURI(vv.Uri))
 		if err != nil {
 			return err
 		}
