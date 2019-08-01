@@ -111,6 +111,8 @@ func (a *App) InitConf() error {
 	var configKeys = map[string]interface{}{
 		Database: &a.conf.Database,
 		Redis:    &a.conf.Redis,
+		Mongo:    &a.conf.Mongo,
+		InfluxDB: &a.conf.InfluxDB,
 	}
 
 	for _, v := range a.confKeys {
