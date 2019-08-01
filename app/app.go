@@ -187,7 +187,7 @@ func (a *App) GetRedis(k string) *redis.Client {
 	return a.redis[k]
 }
 
-func (a *App) InitMongo(k string) error {
+func (a *App) InitMongo() error {
 	for _, v := range a.mongoKeys {
 		vv, ok := a.conf.Mongo[v]
 		if !ok {
