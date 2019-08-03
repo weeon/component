@@ -37,6 +37,11 @@ type App struct {
 }
 
 const (
+	Comm = "comm"
+	Srv  = "srv"
+)
+
+const (
 	Database = "database"
 	Redis    = "redis"
 	Mongo    = "mongo"
@@ -103,12 +108,8 @@ func (a *App) AddInfluxdbKey(ks ...string) {
 	a.influxdbKeys = append(a.influxdbKeys, ks...)
 }
 
-func (a *App) genCommConfKey(k string) string {
-	return fmt.Sprintf("%s/config/comm/%s", a.namespace, k)
-}
-
-func (a *App) genSrvConfKey(k string) string {
-	return fmt.Sprintf("%s/config/srv/%s", a.namespace, k)
+func (a *App) genConfKey(dir, k string) string {
+	return fmt.Sprintf("%s/config/%s/%s", a.namespace, dir, k)
 }
 
 func (a *App) InitConf() error {
@@ -121,12 +122,7 @@ func (a *App) InitConf() error {
 
 	for _, v := range a.confKeys {
 		if vv, ok := configKeys[v]; ok {
-			b, err := a.config.Get(a.genCommConfKey(v))
-			if err != nil {
-				return err
-			}
-			err = toml.Unmarshal(b, vv)
-			if err != nil {
+			if err := a.CommConfDecode(v, vv); err != nil {
 				return err
 			}
 			continue
@@ -137,7 +133,15 @@ func (a *App) InitConf() error {
 }
 
 func (a *App) SrvConfDecode(name string, conf interface{}) error {
-	b, err := a.config.Get(a.genSrvConfKey(name))
+	return a.ConfDecode(Srv, name, conf)
+}
+
+func (a *App) CommConfDecode(name string, conf interface{}) error {
+	return a.ConfDecode(Comm, name, conf)
+}
+
+func (a *App) ConfDecode(dir, name string, conf interface{}) error {
+	b, err := a.config.Get(a.genConfKey(dir, name))
 	if err != nil {
 		return err
 	}
