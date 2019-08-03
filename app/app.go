@@ -103,8 +103,12 @@ func (a *App) AddInfluxdbKey(ks ...string) {
 	a.influxdbKeys = append(a.influxdbKeys, ks...)
 }
 
-func (a *App) genConfKey(k string) string {
-	return fmt.Sprintf("%s/config/%s", a.namespace, k)
+func (a *App) genCommConfKey(k string) string {
+	return fmt.Sprintf("%s/config/comm/%s", a.namespace, k)
+}
+
+func (a *App) genSrvConfKey(k string) string {
+	return fmt.Sprintf("%s/config/srv/%s", a.namespace, k)
 }
 
 func (a *App) InitConf() error {
@@ -117,7 +121,7 @@ func (a *App) InitConf() error {
 
 	for _, v := range a.confKeys {
 		if vv, ok := configKeys[v]; ok {
-			b, err := a.config.Get(a.genConfKey(v))
+			b, err := a.config.Get(a.genCommConfKey(v))
 			if err != nil {
 				return err
 			}
@@ -128,6 +132,18 @@ func (a *App) InitConf() error {
 			continue
 		}
 		return errors.New(fmt.Sprintf("key %s not found", v))
+	}
+	return nil
+}
+
+func (a *App) SrvConfDecode(name string, conf interface{}) error {
+	b, err := a.config.Get(a.genSrvConfKey(name))
+	if err != nil {
+		return err
+	}
+	err = toml.Unmarshal(b, conf)
+	if err != nil {
+		return err
 	}
 	return nil
 }
