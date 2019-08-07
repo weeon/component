@@ -1,9 +1,11 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis"
@@ -214,6 +216,11 @@ func (a *App) InitMongo() error {
 			return errors.New(fmt.Sprintf("mongo key %s not found", v))
 		}
 		cli, err := mongo.NewClient(mgopt.Client().ApplyURI(vv.Uri))
+		if err != nil {
+			return err
+		}
+		ctx, _ := context.WithTimeout(context.Background(), time.Second*10)
+		err = cli.Connect(ctx)
 		if err != nil {
 			return err
 		}
