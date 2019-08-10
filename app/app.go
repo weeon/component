@@ -12,9 +12,11 @@ import (
 	"github.com/influxdata/influxdb-client-go"
 	"github.com/jinzhu/gorm"
 	"github.com/weeon/contract"
+	"github.com/weeon/log"
 	"github.com/weeon/mod"
 	"go.mongodb.org/mongo-driver/mongo"
 	mgopt "go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc"
 )
 
 type App struct {
@@ -56,6 +58,7 @@ type Config struct {
 	Redis    map[string]mod.Redis
 	Mongo    map[string]mod.Mongo
 	InfluxDB map[string]mod.InfluxDB
+	GrpcConn map[string]string
 }
 
 func NewConfig() *Config {
@@ -120,6 +123,7 @@ func (a *App) InitConf() error {
 		Redis:    &a.conf.Redis,
 		Mongo:    &a.conf.Mongo,
 		InfluxDB: &a.conf.InfluxDB,
+		GrpcConn: &a.conf.GrpcConn,
 	}
 
 	for _, v := range a.confKeys {
@@ -242,4 +246,17 @@ func NewDatabase(m mod.Database) (*gorm.DB, error) {
 	var err error
 	engine, err := gorm.Open(m.Driver, newConnStr(m))
 	return engine, err
+}
+
+func (a *App) dialGrpcConn(addr string) *grpc.ClientConn {
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	if err != nil {
+		log.Errorf("get grpc conn error addr %s error: %v", addr, err)
+	}
+	return conn
+}
+
+func (a *App) GetGrpcConn(name string) *grpc.ClientConn {
+	addr := a.conf.GrpcConn[name]
+	return a.dialGrpcConn(addr)
 }
