@@ -109,7 +109,7 @@ func (a *App) AddMongoKey(ks ...string) {
 	a.mongoKeys = append(a.mongoKeys, ks...)
 }
 
-func (a *App) AddInfluxdbKey(ks ...string) {
+func (a *App) AddInfluxDBKey(ks ...string) {
 	a.influxdbKeys = append(a.influxdbKeys, ks...)
 }
 
@@ -207,6 +207,10 @@ func (a *App) InitInfluxDB() error {
 		a.influxDB[v] = cli
 	}
 	return nil
+}
+
+func (a *App) GetInfluxDB(k string) *influxdb.Client{
+	return a.influxDB[k]
 }
 
 func (a *App) GetRedis(k string) *redis.Client {
