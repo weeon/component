@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/BurntSushi/toml"
@@ -199,8 +198,7 @@ func (a *App) InitInfluxDB() error {
 		if !ok {
 			return errors.New(fmt.Sprintf("influxdb key %s not found", v))
 		}
-		cli, err := influxdb.New(http.DefaultClient, influxdb.WithAddress(vv.Addr),
-			influxdb.WithUserAndPass(vv.Username, vv.Password))
+		cli, err := influxdb.New(vv.Addr, vv.Token)
 		if err != nil {
 			return err
 		}
@@ -209,7 +207,7 @@ func (a *App) InitInfluxDB() error {
 	return nil
 }
 
-func (a *App) GetInfluxDB(k string) *influxdb.Client{
+func (a *App) GetInfluxDB(k string) *influxdb.Client {
 	return a.influxDB[k]
 }
 
