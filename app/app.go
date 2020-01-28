@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/BurntSushi/toml"
-	"github.com/go-redis/redis"
+	"github.com/go-redis/redis/v7"
 	"github.com/influxdata/influxdb-client-go"
 	"github.com/jinzhu/gorm"
 	"github.com/weeon/contract"
