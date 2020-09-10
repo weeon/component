@@ -8,7 +8,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis/v7"
-	"github.com/influxdata/influxdb-client-go"
+	"github.com/influxdata/influxdb-client-go/v2"
 	"github.com/jinzhu/gorm"
 	"github.com/weeon/contract"
 	"github.com/weeon/log"
@@ -34,7 +34,7 @@ type App struct {
 	db       map[string]*gorm.DB
 	redis    map[string]*redis.Client
 	mongo    map[string]*mongo.Client
-	influxDB map[string]*influxdb.Client
+	influxDB map[string]influxdb2.Client
 
 	grpcConn map[string]string
 }
@@ -85,7 +85,7 @@ func NewApp(namespace string, c contract.Config) (*App, error) {
 		db:       map[string]*gorm.DB{},
 		redis:    map[string]*redis.Client{},
 		mongo:    map[string]*mongo.Client{},
-		influxDB: map[string]*influxdb.Client{},
+		influxDB: map[string]influxdb2.Client{},
 
 		grpcConn: make(map[string]string),
 	}
@@ -198,16 +198,13 @@ func (a *App) InitInfluxDB() error {
 		if !ok {
 			return errors.New(fmt.Sprintf("influxdb key %s not found", v))
 		}
-		cli, err := influxdb.New(vv.Addr, vv.Token)
-		if err != nil {
-			return err
-		}
+		cli := influxdb2.NewClient(vv.Addr, vv.Token)
 		a.influxDB[v] = cli
 	}
 	return nil
 }
 
-func (a *App) GetInfluxDB(k string) *influxdb.Client {
+func (a *App) GetInfluxDB(k string) influxdb2.Client {
 	return a.influxDB[k]
 }
 
