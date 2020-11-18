@@ -18,10 +18,22 @@ import (
 	"google.golang.org/grpc"
 )
 
+type ServiceConfig struct {
+	Namespace       string
+	Service         string
+	ServiceKey      string
+	HttpPort        int
+	IP              string
+	HealthCheckPath string
+}
+
 type App struct {
-	namespace string
-	config    contract.Config
-	conf      *Config
+	serviceConfig ServiceConfig
+	config        contract.Config
+	registerFn    RegisterFn
+	conf          *Config
+
+	teardownFns []func()
 
 	confKeys []string
 
@@ -69,11 +81,20 @@ func NewConfig() *Config {
 	}
 }
 
-func NewApp(namespace string, c contract.Config) (*App, error) {
+func NewApp(c contract.Config, registerFn RegisterFn, cfg ServiceConfig) (*App, error) {
 	app := App{
-		namespace: namespace,
-		config:    c,
-		conf:      NewConfig(),
+		serviceConfig: ServiceConfig{
+			Namespace:       cfg.Namespace,
+			Service:         cfg.Service,
+			ServiceKey:      fmt.Sprintf("%s/%s", cfg.Namespace, cfg.Service),
+			HttpPort:        cfg.HttpPort,
+			IP:              cfg.IP,
+			HealthCheckPath: cfg.HealthCheckPath,
+		},
+		config:      c,
+		conf:        NewConfig(),
+		registerFn:  registerFn,
+		teardownFns: make([]func(), 0),
 
 		confKeys: make([]string, 0),
 
@@ -90,6 +111,15 @@ func NewApp(namespace string, c contract.Config) (*App, error) {
 		grpcConn: make(map[string]string),
 	}
 	return &app, nil
+}
+
+func (a *App) Register() error {
+	fn, err := a.registerFn(a.serviceConfig)
+	if err != nil {
+		return err
+	}
+	a.teardownFns = append(a.teardownFns, fn)
+	return nil
 }
 
 func (a *App) AddConfKey(ks ...string) {
@@ -113,7 +143,7 @@ func (a *App) AddInfluxDBKey(ks ...string) {
 }
 
 func (a *App) genConfKey(dir, k string) string {
-	return fmt.Sprintf("%s/config/%s/%s", a.namespace, dir, k)
+	return fmt.Sprintf("%s/config/%s/%s", a.serviceConfig.Namespace, dir, k)
 }
 
 func (a *App) InitConf() error {

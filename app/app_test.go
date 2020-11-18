@@ -13,7 +13,7 @@ type write struct {
 
 func (w write) Write(p []byte) (n int, err error) {
 	fmt.Println(string(p))
-	w.b = append(w.b,p...)
+	w.b = append(w.b, p...)
 	return len(p), nil
 }
 
@@ -24,7 +24,7 @@ func TestConf(t *testing.T) {
 	}
 	w := write{}
 	err := toml.NewEncoder(w).Encode(conf.Database)
-	if err != nil{
+	if err != nil {
 		t.Error(err)
 	}
 	t.Log(string(w.b))
