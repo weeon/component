@@ -5,6 +5,7 @@ go 1.12
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/codahale/hdrhistogram v0.0.0-20161010025455-3a0bb77429bd // indirect
+	github.com/gin-gonic/gin v1.6.3
 	github.com/go-redis/redis/v7 v7.0.0-beta.5
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible // indirect
 	github.com/hashicorp/consul/api v1.7.0
