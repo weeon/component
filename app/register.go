@@ -4,9 +4,20 @@ import (
 	"fmt"
 	"github.com/hashicorp/consul/api"
 	"github.com/weeon/contract"
+	"os"
 )
 
 type RegisterFn func(c ServiceConfig) (func(), error)
+
+func ConsulClientFromEnv() (*api.Client, error) {
+	consulAddr := os.Getenv("CONSUL_ADDR")
+	consulToken := os.Getenv("CONSUL_TOKEN")
+	client, err := api.NewClient(&api.Config{
+		Address: consulAddr,
+		Token:   consulToken,
+	})
+	return client, err
+}
 
 func NewConsulRegister(cli *api.Client, logger contract.Logger) RegisterFn {
 	var err error

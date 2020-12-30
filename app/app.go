@@ -27,6 +27,10 @@ type ServiceConfig struct {
 	HealthCheckPath string
 }
 
+type ServiceOpt struct {
+
+}
+
 type App struct {
 	serviceConfig ServiceConfig
 	config        contract.Config
