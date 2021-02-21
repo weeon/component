@@ -9,13 +9,14 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis/v8"
 	"github.com/influxdata/influxdb-client-go/v2"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"github.com/weeon/contract"
 	"github.com/weeon/log"
 	"github.com/weeon/mod"
 	"go.mongodb.org/mongo-driver/mongo"
 	mgopt "go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
+	"gorm.io/driver/mysql"
 )
 
 type ServiceConfig struct {
@@ -277,7 +278,8 @@ func newConnStr(m mod.Database) string {
 
 func NewDatabase(m mod.Database) (*gorm.DB, error) {
 	var err error
-	engine, err := gorm.Open(m.Driver, newConnStr(m))
+
+	engine, err := gorm.Open(mysql.Open(newConnStr(m)), &gorm.Config{} )
 	return engine, err
 }
 
