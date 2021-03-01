@@ -12,6 +12,7 @@ require (
 	github.com/golang/snappy v0.0.0-20180518054509-2e65f85255db // indirect
 	github.com/hashicorp/consul/api v1.7.0
 	github.com/influxdata/influxdb-client-go/v2 v2.0.1
+	github.com/minio/minio-go/v7 v7.0.10
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
 	github.com/tidwall/pretty v1.0.0 // indirect
@@ -20,11 +21,11 @@ require (
 	github.com/uber/jaeger-lib v2.0.0+incompatible // indirect
 	github.com/weeon/contract v0.0.0-20190510071243-5d5297a1e668
 	github.com/weeon/log v0.0.0-20190524040732-54053500b7f1
-	github.com/weeon/mod v0.0.0-20200121090406-7228458cc8d7
+	github.com/weeon/mod v0.0.0-20210301050139-8bffd478976e
 	github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c // indirect
 	github.com/xdg/stringprep v1.0.0 // indirect
 	go.mongodb.org/mongo-driver v1.0.4
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
 	google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107 // indirect
 	google.golang.org/grpc v1.19.0
 	gopkg.in/telegram-bot-api.v4 v4.6.4

@@ -4,12 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
-
 	"github.com/BurntSushi/toml"
 	"github.com/go-redis/redis/v8"
 	"github.com/influxdata/influxdb-client-go/v2"
-	"gorm.io/gorm"
+	"github.com/minio/minio-go/v7"
 	"github.com/weeon/contract"
 	"github.com/weeon/log"
 	"github.com/weeon/mod"
@@ -17,6 +15,8 @@ import (
 	mgopt "go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
 	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"time"
 )
 
 type ServiceConfig struct {
@@ -29,7 +29,6 @@ type ServiceConfig struct {
 }
 
 type ServiceOpt struct {
-
 }
 
 type App struct {
@@ -47,6 +46,7 @@ type App struct {
 	redisKeys    []string
 	mongoKeys    []string
 	influxdbKeys []string
+	minioKeys    []string
 
 	db       map[string]*gorm.DB
 	redis    map[string]*redis.Client
@@ -54,6 +54,8 @@ type App struct {
 	influxDB map[string]influxdb2.Client
 
 	grpcConn map[string]string
+
+	minio map[string]*minio.Client
 }
 
 const (
@@ -67,6 +69,7 @@ const (
 	Mongo    = "mongo"
 	InfluxDB = "influxdb"
 	GrpcConn = "grpc_conn"
+	Minio    = "minio"
 )
 
 type Config struct {
@@ -75,6 +78,7 @@ type Config struct {
 	Mongo    map[string]mod.Mongo
 	InfluxDB map[string]mod.InfluxDB
 	GrpcConn map[string]string
+	Minio    map[string]mod.Minio
 }
 
 func NewConfig() *Config {
@@ -83,6 +87,7 @@ func NewConfig() *Config {
 		Redis:    make(map[string]mod.Redis),
 		Mongo:    make(map[string]mod.Mongo),
 		InfluxDB: make(map[string]mod.InfluxDB),
+		Minio:    make(map[string]mod.Minio),
 	}
 }
 
@@ -107,11 +112,13 @@ func NewApp(c contract.Config, registerFn RegisterFn, cfg ServiceConfig) (*App, 
 		redisKeys:    make([]string, 0),
 		mongoKeys:    make([]string, 0),
 		influxdbKeys: make([]string, 0),
+		minioKeys:    make([]string, 0),
 
 		db:       map[string]*gorm.DB{},
 		redis:    map[string]*redis.Client{},
 		mongo:    map[string]*mongo.Client{},
 		influxDB: map[string]influxdb2.Client{},
+		minio:    map[string]*minio.Client{},
 
 		grpcConn: make(map[string]string),
 	}
@@ -157,6 +164,7 @@ func (a *App) InitConf() error {
 		Redis:    &a.conf.Redis,
 		Mongo:    &a.conf.Mongo,
 		InfluxDB: &a.conf.InfluxDB,
+		Minio:    &a.conf.Minio,
 		GrpcConn: &a.conf.GrpcConn,
 	}
 
@@ -279,7 +287,7 @@ func newConnStr(m mod.Database) string {
 func NewDatabase(m mod.Database) (*gorm.DB, error) {
 	var err error
 
-	engine, err := gorm.Open(mysql.Open(newConnStr(m)), &gorm.Config{} )
+	engine, err := gorm.Open(mysql.Open(newConnStr(m)), &gorm.Config{})
 	return engine, err
 }
 
