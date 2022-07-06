@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/BurntSushi/toml"
+	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis/v8"
-	"github.com/influxdata/influxdb-client-go/v2"
+	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/minio/minio-go/v7"
 	"github.com/weeon/contract"
 	"github.com/weeon/log"
@@ -16,7 +19,6 @@ import (
 	"google.golang.org/grpc"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"time"
 )
 
 type ServiceConfig struct {
@@ -32,6 +34,8 @@ type ServiceOpt struct {
 }
 
 type App struct {
+	routerRegister func(m *gin.Engine)
+
 	serviceConfig ServiceConfig
 	config        contract.Config
 	registerFn    RegisterFn
@@ -123,6 +127,10 @@ func NewApp(c contract.Config, registerFn RegisterFn, cfg ServiceConfig) (*App, 
 		grpcConn: make(map[string]string),
 	}
 	return &app, nil
+}
+
+func (a *App) RegisterRouter(fn func(m *gin.Engine)) {
+	a.routerRegister = fn
 }
 
 func (a *App) Register() error {
@@ -302,4 +310,11 @@ func (a *App) dialGrpcConn(addr string) *grpc.ClientConn {
 func (a *App) GetGrpcConn(name string) *grpc.ClientConn {
 	addr := a.conf.GrpcConn[name]
 	return a.dialGrpcConn(addr)
+}
+
+func (a *App) Run() error {
+	r := gin.New()
+	a.routerRegister(r)
+	r.Run(":8080")
+	return nil
 }
