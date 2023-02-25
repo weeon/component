@@ -20,7 +20,7 @@ require (
 	github.com/weeon/log v0.0.0-20190524040732-54053500b7f1
 	github.com/weeon/mod v0.0.0-20210301050139-8bffd478976e
 	go.mongodb.org/mongo-driver v1.5.1
-	golang.org/x/crypto v0.0.0-20200709230013-948cd5f35899
+	golang.org/x/crypto v0.1.0
 	google.golang.org/genproto v0.0.0-20190404172233-64821d5d2107 // indirect
 	google.golang.org/grpc v1.19.0
 	gopkg.in/telegram-bot-api.v4 v4.6.4
