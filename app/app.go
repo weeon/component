@@ -17,6 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	mgopt "go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -288,8 +289,8 @@ func (a *App) GetMongo(k string) *mongo.Client {
 }
 
 func newConnStr(m mod.Database) string {
-	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
-		m.User, m.Password, m.Host, m.Port, m.Database)
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local&tls=%t",
+		m.User, m.Password, m.Host, m.Port, m.Database, m.TLS)
 }
 
 func NewDatabase(m mod.Database) (*gorm.DB, error) {
@@ -300,7 +301,7 @@ func NewDatabase(m mod.Database) (*gorm.DB, error) {
 }
 
 func (a *App) dialGrpcConn(addr string) *grpc.ClientConn {
-	conn, err := grpc.Dial(addr, grpc.WithInsecure())
+	conn, err := grpc.Dial(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Errorf("get grpc conn error addr %s error: %v", addr, err)
 	}
