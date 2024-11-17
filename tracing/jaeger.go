@@ -1,9 +1,10 @@
 package tracing
 
 import (
+	"log/slog"
+
 	"github.com/opentracing/opentracing-go"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
-	"github.com/weeon/log"
 )
 
 var (
@@ -37,9 +38,9 @@ type l struct {
 }
 
 func (l) Error(msg string) {
-	log.Error(msg)
+	slog.Error(msg)
 }
 
 func (l) Infof(msg string, args ...interface{}) {
-	log.Infof(msg, args...)
+	slog.Info(msg, args...)
 }
