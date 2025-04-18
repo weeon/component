@@ -15,7 +15,7 @@ require (
 	github.com/weeon/log v0.0.0-20190524040732-54053500b7f1
 	github.com/weeon/mod v0.0.0-20210301050139-8bffd478976e
 	go.mongodb.org/mongo-driver v1.5.1
-	golang.org/x/crypto v0.35.0
+	golang.org/x/crypto v0.36.0
 	google.golang.org/grpc v1.56.3
 	gopkg.in/telegram-bot-api.v4 v4.6.4
 	gorm.io/driver/mysql v1.0.4
@@ -88,10 +88,10 @@ require (
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/net v0.36.0 // indirect
-	golang.org/x/sync v0.11.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/sync v0.12.0 // indirect
+	golang.org/x/sys v0.31.0 // indirect
+	golang.org/x/text v0.23.0 // indirect
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/ini.v1 v1.57.0 // indirect
